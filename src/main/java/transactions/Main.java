@@ -10,36 +10,16 @@ import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
  * Created by Evegeny on 20/07/2017.
  */
 public class Main {
     public static void main(String[] args) {
-        SparkConf conf = new SparkConf().setAppName("linkedIn").setMaster("local[*]");
-        JavaSparkContext sc = new JavaSparkContext(conf);
-        SQLContext sqlContext = new SQLContext(sc);
-
-        JavaRDD<String> rdd = sc.textFile("data/transactions.csv");
-
-        StructType schema = DataTypes.createStructType(new StructField[]{
-                        DataTypes.createStructField("countryCode", DataTypes.StringType, false),
-                        DataTypes.createStructField("money", DataTypes.IntegerType, false),
-                        DataTypes.createStructField("from", DataTypes.StringType, false),
-                        DataTypes.createStructField("to", DataTypes.StringType, false)
-                }
-        );
-
-
-        JavaRDD<Row> rowJavaRDD = rdd.map(line -> {
-            String[] data = line.split(";");
-            return RowFactory.create(data[0], Integer.parseInt(data[1]), data[2], data[3]);
-        });
-
-
-        DataFrame df = sqlContext.createDataFrame(rowJavaRDD, schema);
-        df.show();
-        df.withColumn("countryName",???)
+        AnnotationConfigApplicationContext context =
+                new AnnotationConfigApplicationContext(Config.class);
+        context.getBean(TransactionService.class).handleTransactions();
 
 
     }
