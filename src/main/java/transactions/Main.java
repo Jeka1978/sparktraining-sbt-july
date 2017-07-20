@@ -23,7 +23,7 @@ public class Main {
         JavaRDD<String> rdd = sc.textFile("data/transactions.csv");
 
         StructType schema = DataTypes.createStructType(new StructField[]{
-                        DataTypes.createStructField("id", DataTypes.StringType, false),
+                        DataTypes.createStructField("countryCode", DataTypes.StringType, false),
                         DataTypes.createStructField("money", DataTypes.IntegerType, false),
                         DataTypes.createStructField("from", DataTypes.StringType, false),
                         DataTypes.createStructField("to", DataTypes.StringType, false)
@@ -39,7 +39,13 @@ public class Main {
 
         DataFrame df = sqlContext.createDataFrame(rowJavaRDD, schema);
         df.show();
+        df.withColumn("countryName",???)
 
 
     }
 }
+
+
+
+
+
