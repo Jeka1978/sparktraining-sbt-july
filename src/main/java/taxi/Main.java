@@ -1,12 +1,15 @@
 package taxi;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.spark.Accumulator;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.storage.StorageLevel;
 import scala.Tuple2;
+
+import java.util.List;
 
 /**
  * Created by Evegeny on 19/07/2017.
@@ -46,11 +49,28 @@ public class Main {
                 });
 
 
-        JavaPairRDD<String, Integer> sortedTripsRdd = tripRdd.mapToPair(trip -> new Tuple2<>(trip.getId(), trip.getKm()))
+        Accumulator<Integer> bigTripsCounter = sc.accumulator(0);
+        JavaPairRDD<String, Integer> sortedTripsRdd = tripRdd.mapToPair(trip -> {
+            if (trip.getKm() > 5) {
+                bigTripsCounter.add(1);
+            }
+            return new Tuple2<>(trip.getId(), trip.getKm());
+        })
                 .reduceByKey(Integer::sum)
                 .mapToPair(Tuple2::swap)
-                .sortByKey()
+                .sortByKey(false)
                 .mapToPair(Tuple2::swap);
+
+        Integer value = bigTripsCounter.value();
+
+
+        List<Tuple2<String, Integer>> list = sortedTripsRdd.take(3);
+
+        JavaRDD<Tuple2<String, Integer>> parallelize = sc.parallelize(list);
+        JavaPairRDD<String, Integer> pairRDD = parallelize.mapToPair(s -> s);
+
+        pairRDD.join(id2NameRdd).take(3).forEach(System.out::println);
+
 
 //        id2NameRdd.join(sortedTripsRdd).take(3)
 
